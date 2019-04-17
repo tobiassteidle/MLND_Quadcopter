@@ -23,6 +23,7 @@ source activate quadcop
 3. Install Dependencies.
 ```
 pip install -r requirements.txt
+conda install pytorch torchvision cudatoolkit=9.0 -c pytorch
 ```
 
 4. Tests Tensorflow GPU (optional)
