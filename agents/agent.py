@@ -12,8 +12,8 @@ tau = 1e-3                  # update parameter (1-tau)
 policy_noise = 0.1          # target policy smoothing noise
 noise_clip = 0.5
 policy_delay = 2            # delayed policy updates parameter
-lr_actor = 1e-4
-lr_critic = 1e-4
+lr_actor = 1e-3
+lr_critic = 1e-3
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -121,13 +121,29 @@ class TD3:
             self.soft_update(self.critic_2, self.critic_2_target, tau)
 
     def soft_update(self, local_model, target_model, tau):
-        """Soft update model parameters.
-        ?_target = t*?_local + (1 - t)*?_target
-        Params
-        ======
-            local_model: PyTorch model (weights will be copied from)
-            target_model: PyTorch model (weights will be copied to)
-            tau (float): interpolation parameter
-        """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
+
+    def save(self, directory, name):
+        torch.save(self.actor.state_dict(), '%s/%s_actor.pth' % (directory, name))
+        torch.save(self.actor_target.state_dict(), '%s/%s_actor_target.pth' % (directory, name))
+
+        torch.save(self.critic_1.state_dict(), '%s/%s_crtic_1.pth' % (directory, name))
+        torch.save(self.critic_1_target.state_dict(), '%s/%s_critic_1_target.pth' % (directory, name))
+
+        torch.save(self.critic_2.state_dict(), '%s/%s_crtic_2.pth' % (directory, name))
+        torch.save(self.critic_2_target.state_dict(), '%s/%s_critic_2_target.pth' % (directory, name))
+
+    def load(self, directory, name):
+        self.actor.load_state_dict(torch.load('%s/%s_actor.pth' % (directory, name), map_location=lambda storage, loc: storage))
+        self.actor_target.load_state_dict(torch.load('%s/%s_actor_target.pth' % (directory, name), map_location=lambda storage, loc: storage))
+
+        self.critic_1.load_state_dict(torch.load('%s/%s_crtic_1.pth' % (directory, name), map_location=lambda storage, loc: storage))
+        self.critic_1_target.load_state_dict(torch.load('%s/%s_critic_1_target.pth' % (directory, name), map_location=lambda storage, loc: storage))
+
+        self.critic_2.load_state_dict(torch.load('%s/%s_crtic_2.pth' % (directory, name), map_location=lambda storage, loc: storage))
+        self.critic_2_target.load_state_dict(torch.load('%s/%s_critic_2_target.pth' % (directory, name), map_location=lambda storage, loc: storage))
+
+    def load_actor(self, directory, name):
+        self.actor.load_state_dict(torch.load('%s/%s_actor.pth' % (directory, name), map_location=lambda storage, loc: storage))
+        self.actor_target.load_state_dict(torch.load('%s/%s_actor_target.pth' % (directory, name), map_location=lambda storage, loc: storage))
